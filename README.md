@@ -41,7 +41,7 @@ Make sure that you are in the root directory of the project where the app.py, Do
 1. Run the Flask app in a DEBUG mode:
     * `docker compose up`  
     * To rebuild the images and remove any orphaned containers, run: `docker compose up --build --remove-orphans`  
-    * This will build four images and it will start four Docker containers, namely `docker-redis`, `docker-database`, `docker-dataset-worker` and the app itself `docker-suite`.
+    * This will build four images and it will start four Docker containers, namely `store-redis`, `store-database`, `store-mongodb` and the app itself `store`.
 
 # mongodb connection string 
 - mongodb connection string for mongodb compass - `mongodb://127.0.0.1:27017/`
