@@ -1,3 +1,4 @@
 /data/
 /redis_data/
 *.pyc
+.env
