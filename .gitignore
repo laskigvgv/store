@@ -2,3 +2,5 @@
 /redis_data/
 *.pyc
 .env
+/logs/
+/postgres_data/
