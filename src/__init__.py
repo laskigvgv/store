@@ -5,7 +5,7 @@ def create_app() -> Flask:
     """Function to instantiate the app."""
 
     # create a Flask app instance
-    app = Flask("Dashboard API")
+    app = Flask("Store backend API")
     # # make the app recieve real client IP if it's behind one proxy
     # app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
     # # apply app config
