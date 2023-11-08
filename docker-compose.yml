@@ -9,7 +9,7 @@ services:
     command: mongod --quiet --logpath /dev/null
     healthcheck:
       test: ["CMD", "mongosh", "mongodb://localhost:27017/"]
-      interval: 3s
+      interval: 10s
       timeout: 5s
       retries: 3
     volumes:
