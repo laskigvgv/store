@@ -1,7 +1,7 @@
 from .. import dashboard_blueprint as bp
 
 from flask import abort, request
-from src.utils.extras import validate_data
+from src.utils.extras import validate_data, mongo_connection
 from pydantic import BaseModel, Extra, StrictStr, StrictInt, HttpUrl
 
 
@@ -17,7 +17,7 @@ def add_product():
             "price": "product price",
             "quantity": "product quantity"
             "description": "product description"
-            "imge_url": "product image url"
+            "image_url": "product image url"
         }
     :return: JSON response
         {
@@ -25,12 +25,23 @@ def add_product():
             "message": "Product added successfully"
         }
     """
+    # connection to MongoDB
+    mongo_client = mongo_connection()
+    collection = mongo_client.store.products
 
+    print("imame konekcija do mongodb")
     # check for JSON body
     if not (body := request.get_json(silent=True)):
         abort(400, "Missing JSON Body in the Request")
 
     validated_data = validate_data(body, AddProductModel)
+
+    # check if product already exists
+    if collection.find_one({"name": validated_data["name"]}):
+        abort(409, "Product already exists")
+
+    # insert product to the database
+    collection.insert_one(validated_data)
 
     return {"status": "success", "message": "Product added successfully"}
 
