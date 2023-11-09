@@ -9,7 +9,7 @@ RUN apt-get -qq install -y python3 python3-opencv
 ENV PYTHONUNBUFFERED True
 
 # Set the working directory inside the container
-WORKDIR /darko_proekt
+WORKDIR /store
 
 ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m venv venv
@@ -23,7 +23,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code into the container
-COPY . /darko_proekt
+COPY . /store
 
 # Expose the port your Flask app will listen on (change 5000 to your desired port if necessary)
 EXPOSE 5443

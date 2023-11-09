@@ -1,4 +1,7 @@
 from flask import Flask
+from flask_jwt_extended import JWTManager
+
+jwt = JWTManager()
 
 
 def create_app() -> Flask:
@@ -17,7 +20,7 @@ def create_app() -> Flask:
     # # initialize flask extensions
     # initialize_extensions(app)
     # register middleware
-    # register_middleware(app)
+    register_middleware(app)
     # register APIs
     register_apis(app)
 
@@ -52,3 +55,9 @@ def register_auth_api(app: Flask) -> None:
     url_prefix = "/auth"
 
     app.register_blueprint(auth_blueprint, url_prefix=url_prefix)
+
+
+def register_middleware(app: Flask) -> None:
+    from src.middleware import middleware_blueprint
+
+    app.register_blueprint(middleware_blueprint)
