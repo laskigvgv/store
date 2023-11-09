@@ -62,7 +62,7 @@ services:
       - 5443:5443
     command: [ "python", "app.py" ]
     volumes:
-          - .:/darko_proekt
+          - .:/store
           - ./data:/app/data
     depends_on:
       mongodb:
