@@ -1,5 +1,4 @@
-from src.utils.extras import validate_data, mongo_connection
-from flask import abort, current_app
+from src.utils.extras import mongo_connection
 from .. import catalogue_blueprint as bp
 
 
