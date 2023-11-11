@@ -1,6 +1,6 @@
 from .. import dashboard_blueprint as bp
 
-from flask import abort, request
+from flask import abort, request, current_app
 from src.utils.extras import validate_data, mongo_connection
 from pydantic import BaseModel, Extra, StrictStr, StrictInt, HttpUrl
 
@@ -35,7 +35,7 @@ def add_product():
         abort(400, "Missing JSON Body in the Request")
 
     validated_data = validate_data(body, AddProductModel)
-
+    print("momentalna app ==========    ", current_app.config["CLIENT_RATE_LIMIT"])
     # check if product already exists
     if collection.find_one({"name": validated_data["name"]}):
         abort(409, "Product already exists")

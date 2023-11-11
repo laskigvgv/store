@@ -1,7 +1,27 @@
+import os
 from flask import Flask
+from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from dotenv import load_dotenv
+from werkzeug.utils import import_string
 
 jwt = JWTManager()
+
+
+load_dotenv()
+CONFIG_TYPE = os.getenv("CONFIG_TYPE", default="config.DevConfig")
+cfg = import_string(CONFIG_TYPE)()
+
+bcrypt = Bcrypt()
+jwt = JWTManager()
+limiter = Limiter(
+    key_func=get_remote_address,
+    storage_uri=f"redis://{cfg.REDIS_HOST}:6379/{cfg.CLIENT_RATE_LIMIT}",
+    headers_enabled=True,
+    key_prefix="store_api",
+)
 
 
 def create_app() -> Flask:
@@ -11,20 +31,27 @@ def create_app() -> Flask:
     app = Flask("Store backend API")
     # # make the app recieve real client IP if it's behind one proxy
     # app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
-    # # apply app config
-    # app.config.from_object(cfg)
+    # apply app config
+    app.config.from_object(cfg)
     # # add custom JSON provider class
     # app.json = CustomJsonProvider(app)
-    # # add additional app config (redis and db pool objects)
-    # update_app_config(app)
+
     # # initialize flask extensions
-    # initialize_extensions(app)
+    initialize_extensions(app)
     # register middleware
     register_middleware(app)
     # register APIs
     register_apis(app)
 
     return app
+
+
+def initialize_extensions(app: Flask) -> None:
+    """Helper function to initialize app extensions."""
+    bcrypt.init_app(app)
+    jwt.init_app(app)
+    # cache.init_app(app)
+    limiter.init_app(app)
 
 
 def register_apis(app: Flask) -> None:
