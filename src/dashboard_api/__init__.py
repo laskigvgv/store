@@ -10,6 +10,7 @@ CLIENT_RATE_LIMIT = os.getenv("CLIENT_RATE_LIMIT")
 
 
 # apply security checks on all admin_api routes
+# =================we should add admin protection here================
 @dashboard_blueprint.before_request
 @limiter.limit(f"{CLIENT_RATE_LIMIT} per minute")
 def check_for_access_token():
