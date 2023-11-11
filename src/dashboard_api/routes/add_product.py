@@ -1,6 +1,6 @@
 from .. import dashboard_blueprint as bp
 
-from flask import abort, request
+from flask import abort, request, current_app
 from src.utils.extras import validate_data, mongo_connection
 from pydantic import BaseModel, Extra, StrictStr, StrictInt, HttpUrl
 
