@@ -15,5 +15,5 @@ CREATE TABLE client (
 CREATE TABLE cart (
     id SERIAL PRIMARY KEY,
 	client_id INTEGER NOT NULL REFERENCES client(id),
-	items VARCHAR[]
+	items JSONB
 );

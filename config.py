@@ -31,10 +31,22 @@ class Config:
 
     # database hosts
     DB_HOST = os.getenv("DB_HOST")
+    DB_USER = os.getenv("DB_USER")
+    DB_PORT = load_env("DB_PORT")
+    DB_PASSWORD = os.getenv("DB_PASSWORD")
+    DB_NAME = os.getenv("DB_NAME")
+
     REDIS_HOST = os.getenv("REDIS_HOST")
+    REDIS_PORT = os.getenv("REDIS_PORT")
 
     # limites
     CLIENT_RATE_LIMIT = load_env("CLIENT_RATE_LIMIT")
+
+    # general settings
+    LOGIN_DB_CONN = load_env("LOGIN_DB_CONN")
+    CLIENT_CACHE_DB = load_env("CLIENT_CACHE_DB")
+    DB_POOL_MIN_CONN = load_env("DB_POOL_MIN_CONN") or 1
+    DB_POOL_MAX_CONN = load_env("DB_POOL_MAX_CONN") or 2
 
 
 class DevConfig(Config):

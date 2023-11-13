@@ -1,11 +1,19 @@
 import os
+import redis
 from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from psycopg.conninfo import make_conninfo
+from psycopg_pool import ConnectionPool
+from psycopg.rows import dict_row
 from dotenv import load_dotenv
 from werkzeug.utils import import_string
+
+from .database.database_config_pool import DatabasePool
+
+from .utils.redis_queue import RedisQueue
 
 jwt = JWTManager()
 
@@ -35,7 +43,8 @@ def create_app() -> Flask:
     app.config.from_object(cfg)
     # # add custom JSON provider class
     # app.json = CustomJsonProvider(app)
-
+    # add additional app config (redis and db pool objects)
+    update_app_config(app)
     # # initialize flask extensions
     initialize_extensions(app)
     # register middleware
@@ -88,3 +97,94 @@ def register_middleware(app: Flask) -> None:
     from src.middleware import middleware_blueprint
 
     app.register_blueprint(middleware_blueprint)
+
+
+def update_app_config(app: Flask) -> None:
+    """Helper function to add objects to app config."""
+
+    ### Create database poll ###
+    ############################
+
+    with app.app_context():
+        db_conn_pool = DatabasePool(
+            min_conn=app.config["DB_POOL_MIN_CONN"],
+            max_conn=app.config["DB_POOL_MAX_CONN"],
+        )
+
+    ### Create redis connections ###
+    ################################
+
+    redis_login_connection = redis.Redis(
+        host=app.config["REDIS_HOST"],
+        port=app.config["REDIS_PORT"],
+        db=app.config["LOGIN_DB_CONN"],
+        decode_responses=True,
+    )
+
+    redis_users_cache_conn = redis.Redis(
+        host=app.config["REDIS_HOST"],
+        port=app.config["REDIS_PORT"],
+        db=app.config["CLIENT_CACHE_DB"],
+        decode_responses=True,
+    )
+
+    ### Create redis queues ###
+    ###########################
+
+    error_notification_queue = RedisQueue(
+        host=app.config["REDIS_HOST"],
+        port=app.config["REDIS_PORT"],
+        queue_name="notification_queue",
+        queue_db=13,
+    )
+
+    # db_insertion_queue = None
+    # if "main_api" in app.config.get("APIS_IN_USE", []):
+    #     db_insertion_queue = RedisQueue(
+    #         queue_name="db_insertion_queue",
+    #         queue_db=14,
+    #         host=app.config["REDIS_HOST"],
+    #         port=app.config["REDIS_PORT"],
+    #     )
+
+    # Place all objects that we created in app.config.
+    # These are in app.config (which is a dict) because of typing reasons.
+    # If they were added as app instance attributes the typing linter will not
+    # recognize them as valid because they would have been dynamically added.
+    ############################################################################
+
+    app.config.update(
+        {
+            "db_pool": initialize_db_pool(app),
+            "db_conn_pool": db_conn_pool,
+            "redis_login_connection": redis_login_connection,
+            "redis_users_cache_conn": redis_users_cache_conn,
+            "error_notification_queue": error_notification_queue,
+            # "db_insertion_queue": db_insertion_queue,
+        }
+    )
+
+
+def initialize_db_pool(app: Flask) -> ConnectionPool:
+    """
+    Create an instance of a threaded psycopg3 pool.
+    https://www.psycopg.org/psycopg3/docs/api/pool.html#psycopg_pool.ConnectionPool
+    """
+
+    # prepare connection string
+    # https://www.psycopg.org/psycopg3/docs/api/conninfo.html
+    conninfo = make_conninfo(
+        user=app.config["DB_USER"],
+        password=app.config["DB_PASSWORD"],
+        host=app.config["DB_HOST"],
+        port=5432,
+        dbname=app.config["DB_NAME"],
+    )
+
+    # return psycopg3 database pool instance
+    return ConnectionPool(
+        conninfo=conninfo,
+        min_size=app.config.get("DB_POOL_MIN_CONN", 1),
+        max_size=app.config.get("DB_POOL_MAX_CONN", 2),
+        kwargs={"row_factory": dict_row},
+    )
