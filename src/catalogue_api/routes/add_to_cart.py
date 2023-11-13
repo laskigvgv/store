@@ -25,19 +25,12 @@ def add_to_cart():
 
     # client_id = 2 hardcoded needs to be taken from the token when implemented
     client_id = 2
-    # connection to MongoDB
-    mongo_client = mongo_connection()
-    collection = mongo_client.store.products
 
     # check for JSON body
     if not (body := request.get_json(silent=True)):
         abort(400, "Missing JSON Body in the Request")
 
     validated_data = validate_data(body, AddToCartModel)
-
-    # check if product already exists
-    if collection.find_one({"id": validated_data["id"]}):
-        abort(409, "Product already exists")
 
     data = {"client_id": client_id}
 
@@ -52,12 +45,33 @@ def add_to_cart():
         # if the user has a cart, update it
         if result:
             items = result[0]["items"]
-            query = read_query(CATALOGUE_API_QUERIES / "update_cart.sql")
-            items.append(validated_data)
-            data["items"] = json.dumps(items)
 
-            with conn.execute(query, data) as cursor:
-                cursor.fetchall()
+            # check if the product already exists in the cart if yess add plus the quantity to the existing one
+            # else add the product to the cart
+
+            if any(item["id"] == validated_data["id"] for item in items):
+                for item in items:
+                    if item["id"] == validated_data["id"]:
+                        item["quantity"] += validated_data["quantity"]
+                        data["items"] = json.dumps(items)
+
+                        query = read_query(CATALOGUE_API_QUERIES / "update_cart.sql")
+
+                        with conn.execute(query, data) as cursor:
+                            cursor.fetchall()
+                        return {
+                            "status": "success",
+                            "message": "Product updated successfully",
+                        }
+            else:
+                query = read_query(CATALOGUE_API_QUERIES / "update_cart.sql")
+                items.append(validated_data)
+                data["items"] = json.dumps(items)
+
+                with conn.execute(query, data) as cursor:
+                    cursor.fetchall()
+
+                return {"status": "success", "message": "Product added successfully"}
 
         # else create a new cart
         else:

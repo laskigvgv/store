@@ -24,5 +24,6 @@ INSERT INTO cart(
 )
 VALUES (
 	2,
-	'[{"item_name": "item1", "quantity": 2}, {"item_name": "item2", "quantity": 1}]'
+	'[{"id": "654edf8c050f29f5537b7070", "quantity": 2}]'
 );
+
