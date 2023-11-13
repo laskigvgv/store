@@ -24,5 +24,5 @@ INSERT INTO cart(
 )
 VALUES (
 	2,
-	ARRAY['Foset 2','Foset 3']
+	'[{"item_name": "item1", "quantity": 2}, {"item_name": "item2", "quantity": 1}]'
 );
