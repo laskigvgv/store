@@ -5,7 +5,7 @@ services:
     container_name: store-mongodb
     restart: always
     ports:
-      - 27017:27017
+      - "${EXPOSE_MONGO_PORT:-}:27017"
     command: mongod --quiet --logpath /dev/null
     healthcheck:
       test: ["CMD", "mongosh", "mongodb://localhost:27017/"]
@@ -53,7 +53,7 @@ services:
       retries: 3
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
-      # - ./sql:/docker-entrypoint-initdb.d
+      - ./sql:/docker-entrypoint-initdb.d
 
   app:
     build: .
@@ -62,7 +62,7 @@ services:
       - 5443:5443
     command: [ "python", "app.py" ]
     volumes:
-          - .:/darko_proekt
+          - .:/store
           - ./data:/app/data
     depends_on:
       mongodb:

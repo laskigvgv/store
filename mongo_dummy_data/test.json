@@ -1,6 +1,8 @@
 {
   "category": "Fosets",
-  "product": "Foset 1",
+  "name": "Foset 1",
   "price": 1200,
-  "picture": "https://i.ebayimg.com/images/g/7f0AAOSwWXNjcHYq/s-l1600.jpg"
+  "quantity": 1,
+  "description": "Foset 1 brale",
+  "imge_url": "https://i.ebayimg.com/images/g/7f0AAOSwWXNjcHYq/s-l1600.jpg"
 }
