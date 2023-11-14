@@ -32,6 +32,13 @@ def add_to_cart():
 
     validated_data = validate_data(body, AddToCartModel)
 
+    # check if the product exists in the mongo database
+    mongo_conn = mongo_connection()
+    db = mongo_conn["store"]
+    products = db["products"]
+    if not products.find_one({"_id": validated_data["id"]}):
+        abort(404, "Product not found")
+
     data = {"client_id": client_id}
 
     query = read_query(CATALOGUE_API_QUERIES / "get_cart.sql")
