@@ -60,5 +60,5 @@ def preprocess_request() -> Response | None:
 def postprocess_request(response: Response) -> Response:
     """Add headers on response made by any endpoint."""
     response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Server"] = "pixyle.ai"
+    response.headers["Server"] = "dade-holding.com"
     return response
