@@ -26,7 +26,7 @@ def create_user():
     try:
         with db_connection(db_pool) as conn:
             with conn.execute(query, pydantic_data) as cursor:
-                result = cursor.fetchone() or {}
+                result = cursor.fetchone()
     except UniqueViolation:
         abort(409, "Email already exists")
 
