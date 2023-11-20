@@ -1,37 +1,65 @@
-# from .. import auth_blueprint as bp
-# import json
-# from flask import abort, request, jsonify, current_app
-# from flask_bcrypt import Bcrypt
-# from flask_jwt_extended import create_access_token, create_refresh_token, get_jti
-#
-# bcrypt = Bcrypt()
-#
-# @bp.route("/login", methods=["PUT"])
-# def login_user():
-#     dummy_data = {'email': 'fzdravkoski@gmail.com',
-#                   'password' : 'whatever'}
-#     # request.get_json(silent=True)
-#     if not (body := dummy_data):
-#         abort(400, 'Missing json in request')
-#
-#     # Pydantic check to be made
-#
-#     hashed_password = "$2b$12$pPbW4s6qhM03hlWtVU1Fz.ltY.tRMvAlIJ05hYeCCmMv7AfwKBP.C"
-#     print(hashed_password)
-#     if bcrypt.check_password_hash(hashed_password, dummy_data['password'].encode('utf-8')):
-#         access_token = create_access_token(identity=dummy_data['email'])
-#         refresh_token = create_refresh_token(identity=dummy_data['email'])
-#
-#         access_jti = get_jti(encoded_token=access_token)
-#         refresh_jti = get_jti(encoded_token=refresh_token)
-#
-#         token_data = {
-#             "access_token" : access_token,
-#             "refresh_token" : refresh_token
-#         }
-#     else:
-#         abort(409, 'Invalid credentials')
-#
-#
-#     return jsonify(token_data), 200
-#
+from .. import auth_blueprint as bp
+import json
+from flask import abort, request, jsonify, current_app
+from flask_bcrypt import Bcrypt
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jti
+from pydantic import BaseModel, Extra, StrictStr, validator, root_validator
+from psycopg.errors import UniqueViolation
+from src.utils.extras import validate_data, db_connection, read_query
+import re
+from ..sql import AUTH_API_QUERIES
+
+bcrypt = Bcrypt()
+
+
+@bp.route("/login", methods=["GET"])
+def login_user():
+    if not(body := request.get_json(silent=True)):
+        abort(404, "Missing JSON in request")
+
+    pydantic_data = validate_data(body, ValidateLoginInput)
+    query = read_query(AUTH_API_QUERIES / "login_user.sql")
+    db_pool = current_app.config["db_pool"]
+
+    with db_connection(db_pool) as conn:
+        with conn.execute(query, pydantic_data) as cursor:
+            result = cursor.fetchone()
+            if not result:
+                abort(404, "User does not exist")
+            if not bcrypt.check_password_hash(result["password"], pydantic_data["password"]):
+                abort(401, "Wrong login info")
+            # """
+            # Get access and refresh tokens
+            # """
+            # access_token = create_access_token(identity=result["email"])
+            # refresh_token = create_refresh_token(identity=result["email"])
+            # """
+            # get_jti encoded tokens
+            # """
+            # access_jti = get_jti(encoded_token=access_token)
+            # refresh_jti  = get_jti(encoded_token=refresh_token)
+            # print(access_jti, refresh_jti)
+
+    response = {"message" : "Login successful"}
+
+
+    return jsonify(response)
+
+
+
+
+
+class ValidateLoginInput(BaseModel, extra=Extra.forbid):
+    email: StrictStr
+    password: StrictStr
+
+    @validator("email")
+    def check_email(cls, value):
+        """
+        Check regex if the string format is valid for an email.
+        """
+        regex = r"^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,7})+$"
+        if not re.match(regex, value):
+            raise ValueError("Not a valid Email.")
+        return value
+
