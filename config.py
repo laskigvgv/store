@@ -40,6 +40,9 @@ class Config:
     REDIS_HOST = os.getenv("REDIS_HOST")
     REDIS_PORT = os.getenv("REDIS_PORT")
 
+    ACCESS_EXPIRES = timedelta(days=load_env("ACCESS_EXPIRES") or 1)
+    REFRESH_EXPIRES = timedelta(days=load_env("REFRESH_EXPIRES") or 10)
+
     # limites
     CLIENT_RATE_LIMIT = load_env("CLIENT_RATE_LIMIT")
 
