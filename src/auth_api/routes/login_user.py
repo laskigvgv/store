@@ -14,7 +14,7 @@ bcrypt = Bcrypt()
 
 @bp.route("/login", methods=["GET"])
 def login_user():
-    if not(body := request.get_json(silent=True)):
+    if not (body := request.get_json(silent=True)):
         abort(404, "Missing JSON in request")
 
     pydantic_data = validate_data(body, ValidateLoginInput)
@@ -26,27 +26,29 @@ def login_user():
             result = cursor.fetchone()
             if not result:
                 abort(404, "User does not exist")
-            if not bcrypt.check_password_hash(result["password"], pydantic_data["password"]):
+            if not bcrypt.check_password_hash(
+                result["password"], pydantic_data["password"]
+            ):
                 abort(401, "Wrong login info")
             # """
             # Get access and refresh tokens
             # """
-            # access_token = create_access_token(identity=result["email"])
-            # refresh_token = create_refresh_token(identity=result["email"])
-            # """
-            # get_jti encoded tokens
-            # """
-            # access_jti = get_jti(encoded_token=access_token)
-            # refresh_jti  = get_jti(encoded_token=refresh_token)
-            # print(access_jti, refresh_jti)
+            access_token = create_access_token(identity=result["email"])
+            refresh_token = create_refresh_token(identity=result["email"])
+            """
+            get_jti encoded tokens
+            """
+            access_jti = get_jti(encoded_token=access_token)
+            refresh_jti = get_jti(encoded_token=refresh_token)
 
-    response = {"message" : "Login successful"}
+            # redis connection
+            redis_login_connection = current_app.config["redis_login_connection"]
 
+            print(access_token, refresh_token)
+
+    response = {"message": "Login successful"}
 
     return jsonify(response)
-
-
-
 
 
 class ValidateLoginInput(BaseModel, extra=Extra.forbid):
@@ -62,4 +64,3 @@ class ValidateLoginInput(BaseModel, extra=Extra.forbid):
         if not re.match(regex, value):
             raise ValueError("Not a valid Email.")
         return value
-

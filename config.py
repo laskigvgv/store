@@ -28,6 +28,7 @@ class Config:
     # general settings
     API_ENV = os.getenv("API_ENV")
     ENV_URL = os.getenv("ENV_URL")
+    SECRET_KEY = os.getenv("SECRET_KEY")
 
     # database hosts
     DB_HOST = os.getenv("DB_HOST")
