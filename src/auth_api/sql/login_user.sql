@@ -1,0 +1,1 @@
+SELECT email, password FROM client WHERE email = %(email)s
