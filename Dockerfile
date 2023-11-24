@@ -3,7 +3,7 @@ FROM python:3.11-slim
 
 # Update default packages
 RUN apt-get -qq update
-RUN apt-get -qq install -y python3 python3-opencv
+RUN apt-get -qq install -y python3
 
 # Allow statements and log messages to immediately appear in logs
 ENV PYTHONUNBUFFERED True
